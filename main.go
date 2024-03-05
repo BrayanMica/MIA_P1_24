@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"MIA_P1/Analyzer"
+	"fmt"
 )
 
 func main() {
-	fmt.Println("===Start===")
+	fmt.Println("===Inicio===")
 	Analyzer.Analyze()
-	fmt.Println("===End===")
+	fmt.Println("===Gracias por utilizar la app===")
 }
-

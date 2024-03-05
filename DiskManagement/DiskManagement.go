@@ -1,21 +1,21 @@
 package DiskManagement
 
 import (
-	"fmt"
-   "strings"
-   "strconv"
-	"encoding/binary"
-	"MIA_P1/Utilities"
 	"MIA_P1/Structs"
+	"MIA_P1/Utilities"
+	"encoding/binary"
+	"fmt"
+	"strconv"
+	"strings"
 )
 
 func Mount(driveletter string, name string) {
-	fmt.Println("======Start MOUNT======")
+	fmt.Println("======Inicio MOUNT======")
 	fmt.Println("Driveletter:", driveletter)
 	fmt.Println("Name:", name)
 
 	// Open bin file
-	filepath := "./test/" + strings.ToUpper(driveletter)  + ".bin"
+	filepath := "./test/" + strings.ToUpper(driveletter) + ".bin"
 	file, err := Utilities.OpenFile(filepath)
 	if err != nil {
 		return
@@ -46,10 +46,10 @@ func Mount(driveletter string, name string) {
 	}
 
 	if index != -1 {
-		fmt.Println("Partition found")
+		fmt.Println("Partition Encontrada:")
 		Structs.PrintPartition(TempMBR.Partitions[index])
-	}else{
-		fmt.Println("Partition not found")
+	} else {
+		fmt.Println("Partition no Encontrada")
 		return
 	}
 
@@ -61,7 +61,7 @@ func Mount(driveletter string, name string) {
 	copy(TempMBR.Partitions[index].Id[:], id)
 
 	// Overwrite the MBR
-	if err := Utilities.WriteObject(file,TempMBR,0); err != nil {
+	if err := Utilities.WriteObject(file, TempMBR, 0); err != nil {
 		return
 	}
 
@@ -77,11 +77,11 @@ func Mount(driveletter string, name string) {
 	// Close bin file
 	defer file.Close()
 
-	fmt.Println("======End MOUNT======")
+	fmt.Println("======Fin MOUNT======")
 }
 
 func Fdisk(size int, driveletter string, name string, unit string, type_ string, fit string) {
-	fmt.Println("======Start FDISK======")
+	fmt.Println("======Inicio FDISK======")
 	fmt.Println("Size:", size)
 	fmt.Println("Driveletter:", driveletter)
 	fmt.Println("Name:", name)
@@ -91,37 +91,37 @@ func Fdisk(size int, driveletter string, name string, unit string, type_ string,
 
 	// validate fit equals to b/w/f
 	if fit != "b" && fit != "w" && fit != "f" {
-		fmt.Println("Error: Fit must be b, w or f")
+		fmt.Println("Error: Fit debe de ser b, w or f")
 		return
 	}
 
 	// validate size > 0
 	if size <= 0 {
-		fmt.Println("Error: Size must be greater than 0")
+		fmt.Println("Error: Size debe de ser mayor que 0")
 		return
 	}
 
 	// validate unit equals to b/k/m
 	if unit != "b" && unit != "k" && unit != "m" {
-		fmt.Println("Error: Unit must be b, k or m")
+		fmt.Println("Error: Unit debe de ser b, k o m")
 		return
 	}
 
 	// validate type equals to p/e/l
 	if type_ != "p" && type_ != "e" && type_ != "l" {
-		fmt.Println("Error: Type must be p, e or l")
+		fmt.Println("Error: Type debe de ser p, e o l")
 		return
 	}
 
 	// Set the size in bytes
 	if unit == "k" {
 		size = size * 1024
-	}else{
+	} else {
 		size = size * 1024 * 1024
 	}
 
 	// Open bin file
-	filepath := "./test/" + strings.ToUpper(driveletter)  + ".bin"
+	filepath := "./test/" + strings.ToUpper(driveletter) + ".bin"
 	file, err := Utilities.OpenFile(filepath)
 	if err != nil {
 		return
@@ -154,21 +154,21 @@ func Fdisk(size int, driveletter string, name string, unit string, type_ string,
 
 			if count == 0 {
 				TempMBR.Partitions[i].Start = int32(binary.Size(TempMBR))
-			}else{
+			} else {
 				TempMBR.Partitions[i].Start = gap
 			}
-			
+
 			copy(TempMBR.Partitions[i].Name[:], name)
 			copy(TempMBR.Partitions[i].Fit[:], fit)
 			copy(TempMBR.Partitions[i].Status[:], "0")
-			copy(TempMBR.Partitions[i].Type[:], type_)		
+			copy(TempMBR.Partitions[i].Type[:], type_)
 			TempMBR.Partitions[i].Correlative = int32(count + 1)
 			break
 		}
 	}
 
 	// Overwrite the MBR
-	if err := Utilities.WriteObject(file,TempMBR,0); err != nil {
+	if err := Utilities.WriteObject(file, TempMBR, 0); err != nil {
 		return
 	}
 
@@ -184,30 +184,30 @@ func Fdisk(size int, driveletter string, name string, unit string, type_ string,
 	// Close bin file
 	defer file.Close()
 
-	fmt.Println("======End FDISK======")
+	fmt.Println("======Fin FDISK======")
 }
 
 func Mkdisk(size int, fit string, unit string) {
-	fmt.Println("======Start MKDISK======") 
+	fmt.Println("======Inicio MKDISK======")
 	fmt.Println("Size:", size)
 	fmt.Println("Fit:", fit)
 	fmt.Println("Unit:", unit)
 
 	// validate fit equals to b/w/f
 	if fit != "bf" && fit != "wf" && fit != "ff" {
-		fmt.Println("Error: Fit must be b, w or f")
+		fmt.Println("Error: Fit debe de ser b, w o f")
 		return
 	}
 
 	// validate size > 0
 	if size <= 0 {
-		fmt.Println("Error: Size must be greater than 0")
+		fmt.Println("Error: Size debe de ser mayor que 0")
 		return
 	}
 
 	// validate unit equals to k/m
 	if unit != "k" && unit != "m" {
-		fmt.Println("Error: Unit must be k or m")
+		fmt.Println("Error: Unit debe de ser k o m")
 		return
 	}
 
@@ -220,7 +220,7 @@ func Mkdisk(size int, fit string, unit string) {
 	// Set the size in bytes
 	if unit == "k" {
 		size = size * 1024
-	}else{
+	} else {
 		size = size * 1024 * 1024
 	}
 
@@ -240,7 +240,6 @@ func Mkdisk(size int, fit string, unit string) {
 		}
 	}
 
-
 	// Create a new instance of MRB
 	var newMRB Structs.MRB
 	newMRB.MbrSize = int32(size)
@@ -249,10 +248,9 @@ func Mkdisk(size int, fit string, unit string) {
 	copy(newMRB.CreationDate[:], "2021-08-20")
 
 	// Write object in bin file
-	if err := Utilities.WriteObject(file,newMRB,0); err != nil {
+	if err := Utilities.WriteObject(file, newMRB, 0); err != nil {
 		return
 	}
-
 
 	var TempMBR Structs.MRB
 	// Read object from bin file
@@ -266,7 +264,6 @@ func Mkdisk(size int, fit string, unit string) {
 	// Close bin file
 	defer file.Close()
 
-	fmt.Println("======End MKDISK======") 
+	fmt.Println("======Fin MKDISK======")
 
 }
-
