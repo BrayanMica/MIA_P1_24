@@ -1,8 +1,8 @@
 package Analyzer
 
 import (
-	"MIA_P1/DiskManagement"
-	"MIA_P1/FileSystem"
+	"MIA_P1_201907343/DiskManagement"
+	"MIA_P1_201907343/FileSystem"
 	"bufio"
 	"flag"
 	"fmt"
@@ -27,7 +27,7 @@ func Analyze() {
 
 	for {
 		var input string
-		fmt.Print("XD: ")
+		fmt.Print("-> ")
 
 		scanner := bufio.NewScanner(os.Stdin)
 		scanner.Scan()
@@ -35,7 +35,7 @@ func Analyze() {
 
 		command, params := getCommandAndParams(input)
 
-		fmt.Println("Command: ", command, "Params: ", params)
+		fmt.Println("comando: ", command, "Parametros: ", params)
 
 		AnalyzeCommnad(command, params)
 
@@ -51,10 +51,14 @@ func AnalyzeCommnad(command string, params string) {
 
 	if strings.Contains(command, "mkdisk") {
 		fn_mkdisk(params)
+	} else if strings.Contains(command, "rmdisk") {
+		fn_rmdisk(params)
 	} else if strings.Contains(command, "fdisk") {
 		fn_fdisk(params)
 	} else if strings.Contains(command, "mount") {
 		fn_mount(params)
+	} else if strings.Contains(command, "unmount") {
+		fn_unmount(params)
 	} else if strings.Contains(command, "mkfs") {
 		fn_mkfs(params)
 	} else {
@@ -166,7 +170,7 @@ func fn_mkdisk(params string) {
 	// Define flags
 	fs := flag.NewFlagSet("mkdisk", flag.ExitOnError)
 	size := fs.Int("size", 0, "Tamaño")
-	fit := fs.String("fit", "f", "Ajuste")
+	fit := fs.String("fit", "ff", "Ajuste")
 	unit := fs.String("unit", "m", "Unidad")
 
 	// Parse the flags
@@ -174,6 +178,9 @@ func fn_mkdisk(params string) {
 
 	// find the flags in the input
 	matches := re.FindAllStringSubmatch(params, -1)
+
+	// Track if we've seen the "size" flag
+	sizeSeen := false
 
 	// Process the input
 	for _, match := range matches {
@@ -184,13 +191,28 @@ func fn_mkdisk(params string) {
 
 		switch flagName {
 		case "size", "fit", "unit":
+			sizeSeen = true
 			fs.Set(flagName, flagValue)
 		default:
-			fmt.Println("Error: Flag not found")
+			fmt.Println("Error: atributo no encontrado")
 		}
 	}
 
-	// Call the function
-	DiskManagement.Mkdisk(*size, *fit, *unit)
+	// Check if we've seen the "size" flag
+	if !sizeSeen {
+		fmt.Println("Error: La bandera 'size' debe aparecer parametro obligatorio")
+		return
+	} else {
+		// Call the function
+		DiskManagement.Mkdisk(*size, *fit, *unit)
+	}
 
+}
+
+func fn_rmdisk(params string) {
+	println("rmdisk")
+}
+
+func fn_unmount(params string) {
+	println("unmount")
 }

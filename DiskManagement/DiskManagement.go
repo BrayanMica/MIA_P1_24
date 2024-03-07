@@ -1,13 +1,20 @@
 package DiskManagement
 
+// importacion de librerias
 import (
-	"MIA_P1/Structs"
-	"MIA_P1/Utilities"
+	"MIA_P1_201907343/Structs"
+	"MIA_P1_201907343/Utilities"
 	"encoding/binary"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
+
+// variables globales
+var fileName string = ""
 
 func Mount(driveletter string, name string) {
 	fmt.Println("======Inicio MOUNT======")
@@ -192,10 +199,9 @@ func Mkdisk(size int, fit string, unit string) {
 	fmt.Println("Size:", size)
 	fmt.Println("Fit:", fit)
 	fmt.Println("Unit:", unit)
-
 	// validate fit equals to b/w/f
 	if fit != "bf" && fit != "wf" && fit != "ff" {
-		fmt.Println("Error: Fit debe de ser b, w o f")
+		fmt.Println("Error: Fit debe de ser bf, wf o ff")
 		return
 	}
 
@@ -211,11 +217,12 @@ func Mkdisk(size int, fit string, unit string) {
 		return
 	}
 
+	createNextFile("./test/")
 	// Create file
-	err := Utilities.CreateFile("./test/A.bin")
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
+	// err := Utilities.CreateFile("./test/" + filename)
+	// if err != nil {
+	// 	fmt.Println("Error: ", err)
+	// }
 
 	// Set the size in bytes
 	if unit == "k" {
@@ -225,7 +232,7 @@ func Mkdisk(size int, fit string, unit string) {
 	}
 
 	// Open bin file
-	file, err := Utilities.OpenFile("./test/A.bin")
+	file, err := Utilities.OpenFile("./test/" + fileName)
 	if err != nil {
 		return
 	}
@@ -245,7 +252,8 @@ func Mkdisk(size int, fit string, unit string) {
 	newMRB.MbrSize = int32(size)
 	newMRB.Signature = 10 // random
 	copy(newMRB.Fit[:], fit)
-	copy(newMRB.CreationDate[:], "2021-08-20")
+	currentDate := time.Now().Format("2006-01-02")
+	copy(newMRB.CreationDate[:], currentDate)
 
 	// Write object in bin file
 	if err := Utilities.WriteObject(file, newMRB, 0); err != nil {
@@ -266,4 +274,40 @@ func Mkdisk(size int, fit string, unit string) {
 
 	fmt.Println("======Fin MKDISK======")
 
+}
+
+func createNextFile(path string) {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+
+	fileNames := make(map[string]bool)
+	for _, file := range files {
+		name := strings.TrimSuffix(file.Name(), ".bin")
+		fileNames[name] = true
+	}
+
+	nextFileName := "A"
+	for fileNames[nextFileName] {
+		nextFileName = incrementFileName(nextFileName)
+	}
+	nextFileName += ".bin"
+	fileName = nextFileName
+	_, err = os.Create(path + nextFileName)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+}
+
+func incrementFileName(fileName string) string {
+	if fileName == "" {
+		return "A"
+	}
+	lastChar := fileName[len(fileName)-1]
+	if lastChar < 'Z' {
+		return fileName[:len(fileName)-1] + string(lastChar+1)
+	}
+	return incrementFileName(fileName[:len(fileName)-1]) + "A"
 }

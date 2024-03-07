@@ -1,7 +1,7 @@
 package main
 
 import (
-	"MIA_P1/Analyzer"
+	"MIA_P1_201907343/Analyzer"
 	"fmt"
 )
 
