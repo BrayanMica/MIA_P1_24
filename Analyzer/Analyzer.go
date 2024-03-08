@@ -210,9 +210,43 @@ func fn_mkdisk(params string) {
 }
 
 func fn_rmdisk(params string) {
-	println("rmdisk")
+	// Define flags
+	fs := flag.NewFlagSet("mkdisk", flag.ExitOnError)
+	driveletter := fs.String("driveletter", "", "Letradeunidad")
+
+	// Parse the flags
+	fs.Parse(os.Args[1:])
+
+	// find the flags in the input
+	matches := re.FindAllStringSubmatch(params, -1)
+
+	errorRmdisk := false
+	// Process the input
+	for _, match := range matches {
+		flagName := match[1]
+		flagValue := strings.ToLower(match[2])
+
+		flagValue = strings.Trim(flagValue, "\"")
+
+		switch flagName {
+		case "driveletter":
+			fs.Set(flagName, flagValue)
+		default:
+			fmt.Println("Error: atributo no encontrado")
+			errorRmdisk = true
+			return
+		}
+	}
+
+	if errorRmdisk {
+		return
+	} else {
+		// Call the function
+		DiskManagement.Rmdisk(*driveletter)
+	}
+
 }
 
 func fn_unmount(params string) {
-	println("unmount")
+	println("unmount", params)
 }

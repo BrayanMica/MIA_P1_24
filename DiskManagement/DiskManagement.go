@@ -311,3 +311,17 @@ func incrementFileName(fileName string) string {
 	}
 	return incrementFileName(fileName[:len(fileName)-1]) + "A"
 }
+
+func Rmdisk(driveletter string) {
+	fmt.Println("======Inicio RMDISK======")
+	fmt.Println("Driveletter:", driveletter)
+
+	// Open bin file
+	filepath := "./test/" + strings.ToUpper(driveletter) + ".bin"
+	err := os.Remove(filepath)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
+	fmt.Println("======Fin RMDISK======")
+}
