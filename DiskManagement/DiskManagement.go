@@ -96,36 +96,6 @@ func Fdisk(size int, driveletter string, name string, unit string, type_ string,
 	fmt.Println("Type:", type_)
 	fmt.Println("Fit:", fit)
 
-	// validate name length
-	if len(name) > 0 {
-		fmt.Println("Error: No has agreagado un nombre en name")
-		return
-	}
-	// validate fit equals to b/w/f
-	fit = strings.ToLower(fit)
-	if fit != "bf" && fit != "ff" && fit != "wf" {
-		fmt.Println("Error: Fit debe de ser b, w or f")
-		return
-	}
-
-	// validate size > 0
-	if size < 0 {
-		fmt.Println("Error: Size debe de ser un numero positivo mayor que 0")
-		return
-	}
-
-	// Set the size in bytes or kilobytes or megabytes
-	if unit == "B" {
-		// No pasa nada sigue en bytes
-	} else if unit == "k" {
-		size = size * 1024
-	} else if unit == "m" {
-		size = size * 1024 * 1024
-	} else {
-		fmt.Println("Error: Unit debe de ser b, k o m")
-		return
-	}
-
 	// Open bin file
 	filepath := "./test/" + strings.ToUpper(driveletter) + ".bin"
 	file, err := Utilities.OpenFile(filepath)

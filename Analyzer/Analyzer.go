@@ -36,7 +36,7 @@ func Analyze() {
 
 		command, params := getCommandAndParams(input)
 
-		fmt.Println("comando: ", command, "Parametros: ", params)
+		//fmt.Println("comando: ", command, "Parametros: ", params)
 
 		AnalyzeCommnad(command, params)
 
@@ -62,6 +62,10 @@ func AnalyzeCommnad(command string, params string) {
 		fn_unmount(params)
 	} else if strings.Contains(command, "mkfs") {
 		fn_mkfs(params)
+	} else if strings.Contains(command, "pause") {
+		fn_pause()
+	} else if strings.Contains(command, "#") {
+		fn_comentario(params)
 	} else {
 		fmt.Println("Error: comando no encontrado")
 	}
@@ -137,7 +141,7 @@ func fn_fdisk(input string) {
 	fs := flag.NewFlagSet("fdisk", flag.ExitOnError)
 	size := fs.Int("size", 0, "Tamaño")
 	driveletter := fs.String("driveletter", "", "Letra")
-	name := fs.String("name", "", "Nombre")
+	name := fs.String("name", "", "NombredeParticion")
 	unit := fs.String("unit", "", "Unidad")
 	type_ := fs.String("type", "", "Tipo")
 	fit := fs.String("fit", "", "Ajuste")
@@ -154,51 +158,49 @@ func fn_fdisk(input string) {
 	for _, match := range matches {
 		flagName := match[1]
 		flagValue := strings.ToLower(match[2])
-
 		flagValue = strings.Trim(flagValue, "\"")
-
+		//fmt.Println("flagName: ", flagName, "flagValue: ", flagValue)
 		switch flagName {
-		case "size", "fit", "unit", "driveletter", "name", "type":
-			if flagValue == "" {
-				// Aquí puedes poner el código que quieres ejecutar cuando flagValue es una cadena vacía
-				fmt.Println("El parametro " + flagName + " no puede estar vacío")
-				return
-			} else {
-				// Si flagValue no está vacío, entonces se establece el valor de la bandera
-				fs.Set(flagName, flagValue)
-			}
+		case "size", "fit", "unit", "driveletter", "name", "type", "SIZE", "FIT", "UNIT", "DRIVELETTER", "NAME", "TYPE":
+			fs.Set(flagName, flagValue)
 		case "delete", "add":
 			fs.Set(flagName, flagValue)
 		default:
-			fmt.Println("Error: Parametro" + flagName + " no es valido")
+			fmt.Println("Error: Parametro " + flagName + " no es valido")
+			return
 		}
 	}
 
 	// Validate the flags
-	if *size < 0 {
-		fmt.Println("Error: Size debe de ser mayor que cero")
+	if *size <= 0 {
+		fmt.Println("Parametro size obligatorio revise sintaxis y debe ser mayor a 0")
 		return
 	}
 
 	// valitate driveletter
 	*driveletter = strings.ToUpper(*driveletter)
 	if !fileExists(*driveletter) {
-		fmt.Println("Error: Drive letter does not exist")
+		fmt.Println("Error: Driveletter " + *driveletter + " no existe")
 		return
 	}
 
-	// validate name length
+	// validate name
 	if *name == "" {
-		fmt.Println("Error: No has agregado un nombre en name")
+		fmt.Println("Error: Name es un parametro obligatorio y no puede estar vacio")
 		return
 	}
-
 	// validate unit
-	*unit = strings.ToLower(*unit)
+	*unit = strings.ToUpper(*unit)
 	if *unit == "" {
-		*unit = "k"
-	} else if *unit != "b" && *unit != "k" && *unit != "m" {
-		fmt.Println("Error: Unit debe de ser 'b', 'k', or 'm'")
+		*unit = "K"
+	} else if *unit == "B" {
+		// No pasa nada sigue en bytes
+	} else if *unit == "K" {
+		*size = *size * 1024
+	} else if *unit == "M" {
+		*size = *size * 1024 * 1024
+	} else if *unit != "B" && *unit != "K" && *unit != "M" {
+		fmt.Println("Error: Unit debe de ser 'B', 'K', or 'M'")
 		return
 	}
 
@@ -213,11 +215,11 @@ func fn_fdisk(input string) {
 	}
 
 	// validate fit
-	*fit = strings.ToLower(*fit)
+	*fit = strings.ToUpper(*fit)
 	if *fit == "" {
-		*fit = "wf"
-	} else if *fit != "bf" && *fit != "ff" && *fit != "wf" {
-		fmt.Println("Error: Fit debe de ser 'bf', 'ff', o 'wf'")
+		*fit = "WF"
+	} else if *fit != "BF" && *fit != "FF" && *fit != "WF" {
+		fmt.Println("Error: Fit debe de ser 'BF', 'FF', o 'WF'")
 		return
 	}
 
@@ -324,4 +326,15 @@ func fn_rmdisk(params string) {
 
 func fn_unmount(params string) {
 	println("unmount", params)
+}
+
+// 13 fuctin pause
+func fn_pause() {
+	fmt.Print("Press 'Enter' to continue...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
+}
+
+// 14 function comentario
+func fn_comentario(params string) {
+	fmt.Println("Comentario: ", params)
 }
