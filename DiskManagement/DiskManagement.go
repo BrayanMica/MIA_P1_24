@@ -87,7 +87,7 @@ func Mount(driveletter string, name string) {
 	fmt.Println("======Fin MOUNT======")
 }
 
-func Fdisk(size int, driveletter string, name string, unit string, type_ string, fit string) {
+func Fdisk(size int, driveletter string, name string, unit string, type_ string, fit string, delete string, add string) {
 	fmt.Println("======Inicio FDISK======")
 	fmt.Println("Size:", size)
 	fmt.Println("Driveletter:", driveletter)
@@ -96,35 +96,34 @@ func Fdisk(size int, driveletter string, name string, unit string, type_ string,
 	fmt.Println("Type:", type_)
 	fmt.Println("Fit:", fit)
 
+	// validate name length
+	if len(name) > 0 {
+		fmt.Println("Error: No has agreagado un nombre en name")
+		return
+	}
 	// validate fit equals to b/w/f
-	if fit != "b" && fit != "w" && fit != "f" {
+	fit = strings.ToLower(fit)
+	if fit != "bf" && fit != "ff" && fit != "wf" {
 		fmt.Println("Error: Fit debe de ser b, w or f")
 		return
 	}
 
 	// validate size > 0
-	if size <= 0 {
-		fmt.Println("Error: Size debe de ser mayor que 0")
+	if size < 0 {
+		fmt.Println("Error: Size debe de ser un numero positivo mayor que 0")
 		return
 	}
 
-	// validate unit equals to b/k/m
-	if unit != "b" && unit != "k" && unit != "m" {
+	// Set the size in bytes or kilobytes or megabytes
+	if unit == "B" {
+		// No pasa nada sigue en bytes
+	} else if unit == "k" {
+		size = size * 1024
+	} else if unit == "m" {
+		size = size * 1024 * 1024
+	} else {
 		fmt.Println("Error: Unit debe de ser b, k o m")
 		return
-	}
-
-	// validate type equals to p/e/l
-	if type_ != "p" && type_ != "e" && type_ != "l" {
-		fmt.Println("Error: Type debe de ser p, e o l")
-		return
-	}
-
-	// Set the size in bytes
-	if unit == "k" {
-		size = size * 1024
-	} else {
-		size = size * 1024 * 1024
 	}
 
 	// Open bin file
@@ -189,7 +188,12 @@ func Fdisk(size int, driveletter string, name string, unit string, type_ string,
 	Structs.PrintMBR(TempMBR2)
 
 	// Close bin file
-	defer file.Close()
+	err = file.Close()
+	if err != nil {
+		//manejar el error
+		fmt.Println("Error: ", err)
+		return
+	}
 
 	fmt.Println("======Fin FDISK======")
 }
@@ -212,6 +216,9 @@ func Mkdisk(size int, fit string, unit string) {
 	}
 
 	// validate unit equals to k/m
+	if unit == "" {
+		unit = "m"
+	}
 	if unit != "k" && unit != "m" {
 		fmt.Println("Error: Unit debe de ser k o m")
 		return
