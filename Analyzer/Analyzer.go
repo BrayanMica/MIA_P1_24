@@ -25,7 +25,6 @@ func getCommandAndParams(input string) (string, string) {
 }
 
 func Analyze() {
-
 	for {
 		var input string
 		fmt.Print("-> ")
@@ -66,10 +65,11 @@ func AnalyzeCommnad(command string, params string) {
 		fn_pause()
 	} else if strings.Contains(command, "#") {
 		fn_comentario(params)
+	} else if strings.Contains(command, "execute") {
+		fn_execute(params)
 	} else {
 		fmt.Println("Error: comando no encontrado")
 	}
-
 }
 
 func fn_mkfs(input string) {
@@ -337,4 +337,34 @@ func fn_pause() {
 // 14 function comentario
 func fn_comentario(params string) {
 	fmt.Println("Comentario: ", params)
+}
+
+func fn_execute(params string) {
+	// Define flags
+	fs := flag.NewFlagSet("execute", flag.ExitOnError)
+	path := fs.String("path", "", "Ruta")
+
+	// Parse the flags
+	fs.Parse(os.Args[1:])
+
+	// find the flags in the input
+	matches := re.FindAllStringSubmatch(params, -1)
+
+	// Process the input
+	for _, match := range matches {
+		flagName := match[1]
+		flagValue := strings.ToLower(match[2])
+
+		flagValue = strings.Trim(flagValue, "\"")
+
+		switch flagName {
+		case "path":
+			fs.Set(flagName, flagValue)
+		default:
+			fmt.Println("Error: atributo no encontrado")
+		}
+	}
+
+	// Call the function
+	DiskManagement.Execute(*path)
 }

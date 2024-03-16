@@ -302,3 +302,28 @@ func Rmdisk(driveletter string) {
 
 	fmt.Println("======Fin RMDISK======")
 }
+
+func Execute(path string) {
+	fmt.Println("======Inicio FILESYSTEM======")
+	fmt.Println("Path:", path)
+
+	// Open bin file
+	file, err := Utilities.OpenFile(path)
+	if err != nil {
+		return
+	}
+
+	var TempMBR Structs.MRB
+	// Read object from bin file
+	if err := Utilities.ReadObject(file, &TempMBR, 0); err != nil {
+		return
+	}
+
+	// Print object
+	Structs.PrintMBR(TempMBR)
+
+	// Close bin file
+	defer file.Close()
+
+	fmt.Println("======Fin FILESYSTEM======")
+}
