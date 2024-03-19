@@ -304,6 +304,13 @@ func Rmdisk(driveletter string) {
 }
 
 func Execute(path string) {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+	fmt.Println("El programa se está ejecutando en el directorio: ", dir)
+
 	fmt.Println("======Inicio FILESYSTEM======")
 	fmt.Println("Path:", path)
 

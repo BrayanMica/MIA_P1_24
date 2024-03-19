@@ -47,6 +47,12 @@ func Analyze() {
 	}
 }
 
+func AnalyzeQuery(Query string) {
+	command, params := getCommandAndParams(Query)
+	fmt.Println("comando: ", command, "Parametros: ", params)
+	AnalyzeCommnad(command, params)
+}
+
 func AnalyzeCommnad(command string, params string) {
 
 	if strings.Contains(command, "mkdisk") {
@@ -66,7 +72,9 @@ func AnalyzeCommnad(command string, params string) {
 	} else if strings.Contains(command, "#") {
 		fn_comentario(params)
 	} else if strings.Contains(command, "execute") {
-		fn_execute(params)
+		fn_execute("/home/estiben/Documentos/go/src/Proyectos/MIA_P1_201907343/Analyzer/Entry", "modificado", "mia")
+		// modificar funcion fn_execute con los parametros que seria -path=/home/estiben/Documentos/go/src/Proyectos/pruebas.mia
+		// fn_execute(params)
 	} else {
 		fmt.Println("Error: comando no encontrado")
 	}
@@ -272,6 +280,7 @@ func fn_mkdisk(params string) {
 			}
 		default:
 			fmt.Println("Error: atributo no encontrado")
+			return
 		}
 	}
 
@@ -339,32 +348,35 @@ func fn_comentario(params string) {
 	fmt.Println("Comentario: ", params)
 }
 
-func fn_execute(params string) {
+func fn_execute(path string, filename string, extension string) {
 	// Define flags
-	fs := flag.NewFlagSet("execute", flag.ExitOnError)
-	path := fs.String("path", "", "Ruta")
+	fullPath := path + "/" + filename + "." + extension
 
-	// Parse the flags
-	fs.Parse(os.Args[1:])
+	file, err := os.Open(fullPath)
+	if err != nil {
+		fmt.Println("Error al abrir el archivo: ", err)
+		return
+	}
+	defer file.Close()
 
-	// find the flags in the input
-	matches := re.FindAllStringSubmatch(params, -1)
-
-	// Process the input
-	for _, match := range matches {
-		flagName := match[1]
-		flagValue := strings.ToLower(match[2])
-
-		flagValue = strings.Trim(flagValue, "\"")
-
-		switch flagName {
-		case "path":
-			fs.Set(flagName, flagValue)
-		default:
-			fmt.Println("Error: atributo no encontrado")
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if idx := strings.Index(line, "#"); idx != -1 {
+			line = line[:idx]
 		}
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// impresion de la linea
+		fmt.Println(line)
+		// colocar funcion para llamar al analizador
+		// analizador(line)
+		AnalyzeQuery(line)
 	}
 
-	// Call the function
-	DiskManagement.Execute(*path)
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error al leer el archivo: ", err)
+	}
 }

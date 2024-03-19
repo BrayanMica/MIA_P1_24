@@ -1,0 +1,26 @@
+#ENTRADA PRIMER PARTE MIA
+#Seccion A - Sergie Arizandieta
+#1S 2024
+#CAMBIAR /home/serchiboi -> POR SU USUARIO EJ ->  /home/SU_USER 
+#CAMBIAR LOS IDS
+
+#DISCO X
+mkdisk -param=x -size=30 -path=/home/serchiboi/archivos/Disco.dsk # ERR PARAMETROS
+
+#CREACION DE DISCOS---------------------------------------------------
+Mkdisk -size=50 -unit=K -fit=FF                   # 50M A
+Mkdisk -unit=k -size=512 -fit=BF                # 50M B
+mkDisk -size=1                                   # 13M C
+mkdisk -size=512 -unit=K                        # 50M D
+mkDisk -size=20 -unit=K -fit=WF                   # 20M E
+Mkdisk -size=50 -unit=K -fit=FF                   # 50M F X
+Mkdisk -size=50 -unit=K -fit=FF                   # 50M G X
+mkdisk -size=512 -unit=K                        # 50M H X
+mkdisk -size=512 -unit=K                        # 50M I X
+
+#ELIMINACION DE DISCOS---------------------------------------------------
+rmdisk -driveletter=Z #ERR RUTA NO ENCONTRADA
+rmdisk -driveletter=F
+rmdisk -driveletter=G
+rmdisk -driveletter=H
+rmdisk -driveletter=I
