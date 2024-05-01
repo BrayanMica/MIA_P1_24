@@ -4,15 +4,85 @@ import (
 	"MIA_P1_201907343/DiskManagement"
 	"MIA_P1_201907343/FileSystem"
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 var re = regexp.MustCompile(`-(\w+)=("[^"]+"|\S+)`)
+
+type responseList struct {
+	Status int64    `json:"Status"`
+	List   []string `json:"List"`
+}
+
+type responseString struct {
+	Status int64  `json:"Status"`
+	Value  string `json:"Value"`
+}
+
+type loginValues struct {
+	User     string `json:"User"`
+	Password string `json:"Password"`
+}
+
+var newResponseList responseList
+var continuar bool = false
+
+func addToResponseList() {
+	newResponseList.List = append(newResponseList.List, "A.disk")
+	newResponseList.List = append(newResponseList.List, "B.disk")
+	newResponseList.List = append(newResponseList.List, "C.disk")
+}
+
+func postMethod(w http.ResponseWriter, r *http.Request) {
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Fprintf(w, "Insert a Valid Data")
+	}
+	var newLoginValues loginValues
+	json.Unmarshal(reqBody, &newLoginValues)
+
+	fmt.Println(newLoginValues.User)
+	fmt.Println(newLoginValues.Password)
+
+	newResponseList.Status = 200
+	newResponseList.List = []string{}
+
+	addToResponseList()
+
+	for _, item := range newResponseList.List {
+		fmt.Println(item)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newResponseList)
+}
+
+func getMethod(w http.ResponseWriter, r *http.Request) {
+	var newResponseString responseString
+	newResponseString.Status = 200
+	newResponseString.Value = "Si funciona el get XD"
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(newResponseString)
+}
+
+func handleRoute(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Weltome to my  API :D")
+}
 
 func getCommandAndParams(input string) (string, string) {
 	parts := strings.Fields(input)
@@ -22,6 +92,14 @@ func getCommandAndParams(input string) (string, string) {
 		return command, params
 	}
 	return "", input
+}
+
+// Funcion para agregar discos a la lista post
+func AgreagarDiscos() {
+	newResponseList.Status = 200
+	newResponseList.List = append(newResponseList.List, "Disco 1")
+	newResponseList.List = append(newResponseList.List, "Disco 2")
+	newResponseList.List = append(newResponseList.List, "Disco 3")
 }
 
 func Analyze() {
@@ -43,8 +121,21 @@ func Analyze() {
 		//fdisk -size=300 -driveletter=A -name=Particion1
 		//mount -driveletter=A -name=Particion1
 		//mkfs -type=full -id=A119
-
+		if continuar {
+			break
+		}
 	}
+
+	fmt.Println("Server started on port 4000")
+
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", handleRoute)
+	router.HandleFunc("/tasks", postMethod).Methods("POST")
+	router.HandleFunc("/tasks", getMethod).Methods("GET")
+
+	handler := cors.Default().Handler(router)
+	log.Fatal(http.ListenAndServe(":4000", handler))
+
 }
 
 func AnalyzeQuery(Query string) {
@@ -67,14 +158,18 @@ func AnalyzeCommnad(command string, params string) {
 		fn_unmount(params)
 	} else if strings.Contains(command, "mkfs") {
 		fn_mkfs(params)
-	} else if strings.Contains(command, "pause") {
-		fn_pause()
+	} else if strings.Contains(command, "logout") {
+		continuar = true
 	} else if strings.Contains(command, "#") {
 		fn_comentario(params)
+	} else if strings.Contains(command, "rep") {
+		fn_rep(params)
 	} else if strings.Contains(command, "execute") {
-		fn_execute("/home/estiben/Documentos/go/src/Proyectos/MIA_P1_201907343/Analyzer/Entry", "modificado", "mia")
+		fn_execute("./Analyzer/Entry", "Entry", "mia")
 		// modificar funcion fn_execute con los parametros que seria -path=/home/estiben/Documentos/go/src/Proyectos/pruebas.mia
 		// fn_execute(params)
+	} else if strings.Contains(command, "exit") {
+		os.Exit(0)
 	} else {
 		fmt.Println("Error: comando no encontrado")
 	}
@@ -154,7 +249,10 @@ func fn_fdisk(input string) {
 	type_ := fs.String("type", "", "Tipo")
 	fit := fs.String("fit", "", "Ajuste")
 	delete := fs.String("delete", "", "Eliminar")
-	add := fs.String("add", "", "Agregar")
+	add := fs.Int("add", 0, "Agregar")
+
+	comandoDelete := false
+	comandoAdd := false
 
 	// Parse the flags
 	fs.Parse(os.Args[1:])
@@ -171,8 +269,12 @@ func fn_fdisk(input string) {
 		switch flagName {
 		case "size", "fit", "unit", "driveletter", "name", "type", "SIZE", "FIT", "UNIT", "DRIVELETTER", "NAME", "TYPE":
 			fs.Set(flagName, flagValue)
-		case "delete", "add":
+		case "delete":
 			fs.Set(flagName, flagValue)
+			comandoDelete = true
+		case "add":
+			fs.Set(flagName, flagValue)
+			comandoAdd = true
 		default:
 			fmt.Println("Error: Parametro " + flagName + " no es valido")
 			return
@@ -180,7 +282,7 @@ func fn_fdisk(input string) {
 	}
 
 	// Validate the flags
-	if *size <= 0 {
+	if *size <= 0 && !comandoDelete && !comandoAdd {
 		fmt.Println("Parametro size obligatorio revise sintaxis y debe ser mayor a 0")
 		return
 	}
@@ -232,7 +334,25 @@ func fn_fdisk(input string) {
 	}
 
 	// Call the function
-	DiskManagement.Fdisk(*size, *driveletter, *name, *unit, *type_, *fit, *delete, *add)
+	*delete = strings.ToLower(*delete)
+	if comandoDelete {
+		if *name != "" && *driveletter != "" && *delete == "full" {
+			DiskManagement.Fdisk_Delete(*delete, *name, *driveletter)
+		} else {
+			fmt.Println("Error: Asegurese de que los campos name, driveletter y delete estén llenos y delete sea full")
+			return
+		}
+	} else if comandoAdd {
+		if *driveletter != "" && *unit != "" {
+			DiskManagement.Fdisk_Add(*add, *unit, *name, *driveletter)
+		} else {
+			fmt.Println("Error: Solo los campos add y driveletter deben estar llenos")
+			return
+		}
+	} else {
+		DiskManagement.Fdisk(*size, *driveletter, *name, *unit, *type_, *fit)
+	}
+
 }
 
 // Verifica si un archivo existe
@@ -338,10 +458,6 @@ func fn_unmount(params string) {
 }
 
 // 13 fuctin pause
-func fn_pause() {
-	fmt.Print("Press 'Enter' to continue...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
-}
 
 // 14 function comentario
 func fn_comentario(params string) {
@@ -379,4 +495,36 @@ func fn_execute(path string, filename string, extension string) {
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error al leer el archivo: ", err)
 	}
+}
+
+func fn_rep(params string) {
+	// Define flags
+	fs := flag.NewFlagSet("rep", flag.ExitOnError)
+	id := fs.String("id", "", "Id")
+	path := fs.String("path", "", "Path")
+	name := fs.String("name", "", "Name")
+	// Parse the flags
+	fs.Parse(os.Args[1:])
+
+	// find the flags in the input
+	matches := re.FindAllStringSubmatch(params, -1)
+
+	// Process the input
+	for _, match := range matches {
+		flagName := match[1]
+		flagValue := strings.ToLower(match[2])
+
+		flagValue = strings.Trim(flagValue, "\"")
+
+		switch flagName {
+		case "id", "Path", "name":
+			fmt.Println("name: ", name)
+			fs.Set(flagName, flagValue)
+		default:
+			fmt.Println("Error: atributo no encontrado")
+			return
+		}
+	}
+
+	DiskManagement.Rep(*id, *path)
 }

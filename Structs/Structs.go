@@ -15,7 +15,7 @@ type MRB struct {
 }
 
 func PrintMBR(data MRB) {
-	fmt.Println(fmt.Sprintf("CreationDate: %s, fit: %s, size: %d", string(data.CreationDate[:]), string(data.Fit[:]), data.MbrSize))
+	fmt.Printf("CreationDate: %s, fit: %s, size: %d\n", string(data.CreationDate[:]), string(data.Fit[:]), data.MbrSize)
 	for i := 0; i < 4; i++ {
 		PrintPartition(data.Partitions[i])
 	}
@@ -24,18 +24,29 @@ func PrintMBR(data MRB) {
 //  =============================================================
 
 type Partition struct {
-	Status      [1]byte
-	Type        [1]byte
-	Fit         [1]byte
-	Start       int32
-	Size        int32
-	Name        [16]byte
-	Correlative int32
-	Id          [4]byte
+	Status      [1]byte  // indica si la particion esta montada o no
+	Type        [1]byte  // indica el tipo de particion, primaria(P) o extendida(E)
+	Fit         [1]byte  // Tipo de ajuste de la particion (Best(B), First(F), Worst(W))
+	Start       int32    // Indica en que byte del disco inicia la particion
+	Size        int32    // Tamaño de la particion en bytes
+	Name        [16]byte // Nombre de la particion
+	Correlative int32    // Correlativo de la particion es un numero
+	Id          [4]byte  // Identificador unico de la particion
 }
 
 func PrintPartition(data Partition) {
-	fmt.Println(fmt.Sprintf("Name: %s, type: %s, start: %d, size: %d, status: %s, id: %s", string(data.Name[:]), string(data.Type[:]), data.Start, data.Size, string(data.Status[:]), string(data.Id[:])))
+	fmt.Printf("Name: %s, type: %s, start: %d, size: %d, status: %s, id: %s\n", string(data.Name[:]), string(data.Type[:]), data.Start, data.Size, string(data.Status[:]), string(data.Id[:]))
+}
+
+//  =============================================================
+
+type EBR struct {
+	PartMount byte     // Indica si la partición está montada o no
+	PartFit   byte     // Tipo de ajuste de la partición. Tendrá los valores B (Best), F (First) o W (worst)
+	PartStart int32    // Indica en qué byte del disco inicia la partición
+	PartSize  int32    // Contiene el tamaño total de la partición en bytes.
+	PartNext  int32    // Byte en el que está el próximo EBR. -1 si no hay siguiente
+	PartName  [16]byte // Nombre de la partición
 }
 
 //  =============================================================
